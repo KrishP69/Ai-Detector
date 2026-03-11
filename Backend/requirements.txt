@@ -1,5 +1,8 @@
 flask
 flask-cors
-pillow
 requests
 python-dotenv
+pillow
+opencv-python
+numpy
+gunicorn

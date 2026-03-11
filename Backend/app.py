@@ -1,25 +1,40 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import os
 from detector import detect_ai
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/detect", methods=["POST"])
+UPLOAD_FOLDER = "uploads"
 
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+
+@app.route("/")
+def home():
+    return "AI Detector API Running"
+
+
+@app.route("/detect", methods=["POST"])
 def detect():
 
-    image = request.files["image"]
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
 
-    label, score = detect_ai(image)
+    file = request.files["image"]
 
-    return jsonify({
-        "result": label,
-        "confidence": round(score*100,2)
-    })
+    path = os.path.join(UPLOAD_FOLDER, file.filename)
 
-if __name__ == "__main__":
-  import os
+    file.save(path)
+
+    result = detect_ai(path)
+
+    os.remove(path)
+
+    return jsonify(result)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
