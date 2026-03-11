@@ -1,21 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>AI Image Detector</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="main">
+<nav>
+<h2>AI Detector</h2>
+<button id="themeToggle">🌙</button>
+</nav>
 
-<h1>AI Image Detector</h1>
-<p class="subtitle">Detect whether an image is AI generated</p>
+<section class="hero">
+<h1>Detect AI Generated Images</h1>
+<p>Upload an image and let our AI analyze it instantly.</p>
+</section>
+
+<section class="detector">
 
 <div class="card">
 
 <div id="dropArea">
-<p>Drag & Drop Image Here</p>
+<p>Drag & Drop Image</p>
 <input type="file" id="imageUpload" accept="image/*">
 </div>
 
@@ -26,20 +34,32 @@
 <button class="secondary" onclick="removeImage()">Remove</button>
 </div>
 
-<div id="loading" style="display:none;">
+<div id="loading">
 <div class="spinner"></div>
 <p>Analyzing image...</p>
 </div>
 
 <div id="result"></div>
 
-<div id="confidenceBar" style="display:none;">
+<div id="confidenceBar">
 <div id="confidenceFill"></div>
 </div>
 
 </div>
 
-</div>
+</section>
+
+<section class="history">
+
+<h2>Scan History</h2>
+
+<ul id="historyList"></ul>
+
+</section>
+
+<footer>
+<p>Built by Krish Patil • AI Detector</p>
+</footer>
 
 <script src="script.js"></script>
 
