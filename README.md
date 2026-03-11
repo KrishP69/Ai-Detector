@@ -2,6 +2,9 @@
 
 A web application that detects whether an image is AI-generated or real using an AI detection API.
 
+## Website Url
+https://ai-image-detector-one.vercel.app
+
 ## 🌐 Live Demo
 
 Frontend (Website)  
