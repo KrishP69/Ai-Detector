@@ -79,14 +79,10 @@ result.innerText=data.result+" ("+data.confidence+"% confidence)"
 bar.style.display="block"
 fill.style.width=data.confidence+"%"
 
-/* Show forensic image */
-
 forensic.src =
 "https://ai-detector-api-q80d.onrender.com/forensic?"+Date.now()
 
 forensic.style.display = "block"
-
-/* Suspicion meter */
 
 let aiScore=data.confidence
 
@@ -153,3 +149,74 @@ toggle.innerText="🌙"
 }
 
 }
+
+
+/* Zoom viewer */
+
+let zoomModal=document.getElementById("zoomModal")
+let zoomImage=document.getElementById("zoomImage")
+let closeZoom=document.getElementById("closeZoom")
+
+let scale=1
+let posX=0
+let posY=0
+let dragging=false
+let startX,startY
+
+forensic.onclick=function(){
+
+zoomModal.style.display="flex"
+zoomImage.src=forensic.src
+
+scale=1
+posX=0
+posY=0
+
+zoomImage.style.transform=`scale(${scale}) translate(${posX}px,${posY}px)`
+
+}
+
+closeZoom.onclick=function(){
+zoomModal.style.display="none"
+}
+
+zoomImage.addEventListener("wheel",function(e){
+
+e.preventDefault()
+
+scale+=e.deltaY*-0.001
+
+scale=Math.min(Math.max(.5,scale),5)
+
+zoomImage.style.transform=`scale(${scale}) translate(${posX}px,${posY}px)`
+
+})
+
+zoomImage.addEventListener("mousedown",function(e){
+
+dragging=true
+
+startX=e.clientX-posX
+startY=e.clientY-posY
+
+zoomImage.style.cursor="grabbing"
+
+})
+
+window.addEventListener("mouseup",()=>{
+
+dragging=false
+zoomImage.style.cursor="grab"
+
+})
+
+window.addEventListener("mousemove",function(e){
+
+if(!dragging) return
+
+posX=e.clientX-startX
+posY=e.clientY-startY
+
+zoomImage.style.transform=`scale(${scale}) translate(${posX}px,${posY}px)`
+
+})

@@ -52,7 +52,6 @@
 <div id="loading">
 
 <div class="spinner"></div>
-
 <p>Analyzing image...</p>
 
 </div>
@@ -62,9 +61,7 @@
 
 
 <div id="confidenceBar">
-
 <div id="confidenceFill"></div>
-
 </div>
 
 
@@ -73,33 +70,18 @@
 <h3>AI Suspicion Meter</h3>
 
 <div class="analysis-row">
-
 <span>Realistic AI Patterns</span>
-
-<div class="analysis-bar">
-<div id="patternBar"></div>
-</div>
-
+<div class="analysis-bar"><div id="patternBar"></div></div>
 </div>
 
 <div class="analysis-row">
-
 <span>Lighting Anomaly</span>
-
-<div class="analysis-bar">
-<div id="lightingBar"></div>
-</div>
-
+<div class="analysis-bar"><div id="lightingBar"></div></div>
 </div>
 
 <div class="analysis-row">
-
 <span>Texture Anomaly</span>
-
-<div class="analysis-bar">
-<div id="textureBar"></div>
-</div>
-
+<div class="analysis-bar"><div id="textureBar"></div></div>
 </div>
 
 <p id="finalScore"></p>
@@ -121,14 +103,22 @@
 
 
 <footer>
-
 <p>Built by Krish Patil • AI Detector</p>
-
 </footer>
+
+
+<!-- Zoom Viewer -->
+
+<div id="zoomModal" class="zoom-modal">
+
+<span id="closeZoom">&times;</span>
+
+<img id="zoomImage">
+
+</div>
 
 
 <script src="script.js"></script>
 
 </body>
-
 </html>

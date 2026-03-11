@@ -40,8 +40,6 @@ border-radius:10px;
 cursor:pointer;
 }
 
-/* Image comparison */
-
 .analysis-images{
 display:flex;
 gap:20px;
@@ -54,6 +52,7 @@ flex-wrap:wrap;
 max-width:220px;
 border-radius:10px;
 box-shadow:0 5px 15px rgba(0,0,0,0.4);
+cursor:pointer;
 }
 
 .buttons{
@@ -110,8 +109,6 @@ width:0%;
 background:#22c55e;
 transition:width 0.5s;
 }
-
-/* Suspicion Meter */
 
 .analysis-row{
 margin-top:10px;
@@ -173,6 +170,38 @@ footer{
 margin-top:60px;
 padding:20px;
 background:#111827;
+}
+
+
+/* Zoom Modal */
+
+.zoom-modal{
+display:none;
+position:fixed;
+z-index:1000;
+left:0;
+top:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.9);
+justify-content:center;
+align-items:center;
+}
+
+#zoomImage{
+max-width:90%;
+max-height:90%;
+cursor:grab;
+transition:transform 0.1s;
+}
+
+#closeZoom{
+position:absolute;
+top:30px;
+right:40px;
+font-size:40px;
+color:white;
+cursor:pointer;
 }
 
 /* Light Mode */
