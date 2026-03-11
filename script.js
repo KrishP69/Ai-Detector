@@ -30,12 +30,9 @@ function removeImage(){
 fileInput.value=""
 preview.src=""
 preview.style.display="none"
-
 document.getElementById("result").innerText=""
 document.getElementById("confidenceBar").style.display="none"
 document.getElementById("analysisSection").style.display="none"
-
-clearHeatmap()
 
 }
 
@@ -75,22 +72,20 @@ result.innerText=data.result+" ("+data.confidence+"% confidence)"
 bar.style.display="block"
 fill.style.width=data.confidence+"%"
 
-generateHeatmap()
+let aiScore = data.confidence
 
-let aiScore=data.confidence
-
-let pattern=Math.min(100, aiScore+10)
-let lighting=Math.max(5, aiScore*0.6)
-let texture=Math.max(3, aiScore*0.4)
+let pattern = Math.min(100, aiScore + 10)
+let lighting = Math.max(5, aiScore * 0.6)
+let texture = Math.max(3, aiScore * 0.4)
 
 document.getElementById("analysisSection").style.display="block"
 
-document.getElementById("patternBar").style.width=pattern+"%"
-document.getElementById("lightingBar").style.width=lighting+"%"
-document.getElementById("textureBar").style.width=texture+"%"
+document.getElementById("patternBar").style.width = pattern + "%"
+document.getElementById("lightingBar").style.width = lighting + "%"
+document.getElementById("textureBar").style.width = texture + "%"
 
-document.getElementById("finalScore").innerText=
-"Final AI Probability: "+aiScore+"%"
+document.getElementById("finalScore").innerText =
+"Final AI Probability: " + aiScore + "%"
 
 saveHistory(data.result,data.confidence)
 
@@ -102,62 +97,6 @@ result.innerText="Server error"
 }
 
 }
-
-/* AI Heatmap */
-
-function generateHeatmap(){
-
-clearHeatmap()
-
-let canvas=document.createElement("canvas")
-canvas.id="heatmap"
-
-let img=preview
-
-canvas.width=img.width
-canvas.height=img.height
-
-canvas.style.position="absolute"
-canvas.style.left=img.offsetLeft+"px"
-canvas.style.top=img.offsetTop+"px"
-canvas.style.pointerEvents="none"
-
-document.body.appendChild(canvas)
-
-let ctx=canvas.getContext("2d")
-
-for(let i=0;i<20;i++){
-
-let x=Math.random()*canvas.width
-let y=Math.random()*canvas.height
-let r=Math.random()*80+30
-
-let gradient=ctx.createRadialGradient(x,y,10,x,y,r)
-
-gradient.addColorStop(0,"rgba(255,0,0,0.4)")
-gradient.addColorStop(1,"rgba(255,0,0,0)")
-
-ctx.fillStyle=gradient
-
-ctx.beginPath()
-ctx.arc(x,y,r,0,Math.PI*2)
-ctx.fill()
-
-}
-
-}
-
-/* Clear heatmap */
-
-function clearHeatmap(){
-
-let old=document.getElementById("heatmap")
-
-if(old) old.remove()
-
-}
-
-/* History */
 
 function saveHistory(result,confidence){
 
