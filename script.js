@@ -30,6 +30,7 @@ function removeImage(){
 fileInput.value=""
 preview.src=""
 preview.style.display="none"
+
 document.getElementById("result").innerText=""
 document.getElementById("confidenceBar").style.display="none"
 document.getElementById("analysisSection").style.display="none"
@@ -72,11 +73,11 @@ result.innerText=data.result+" ("+data.confidence+"% confidence)"
 bar.style.display="block"
 fill.style.width=data.confidence+"%"
 
-let aiScore = data.confidence
+let aiScore=data.confidence
 
-let pattern = Math.min(100, aiScore + 10)
-let lighting = Math.max(5, aiScore * 0.6)
-let texture = Math.max(3, aiScore * 0.4)
+let pattern=Math.min(100, aiScore+10)
+let lighting=Math.max(5, aiScore*0.6)
+let texture=Math.max(3, aiScore*0.4)
 
 document.getElementById("analysisSection").style.display="block"
 
