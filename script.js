@@ -35,6 +35,7 @@ preview.src = "";
 preview.style.display = "none";
 
 document.getElementById("result").innerText = "";
+document.getElementById("confidenceBar").style.display = "none";
 
 }
 
@@ -46,27 +47,39 @@ return;
 }
 
 let result = document.getElementById("result");
+let loading = document.getElementById("loading");
+let bar = document.getElementById("confidenceBar");
+let fill = document.getElementById("confidenceFill");
 
-result.innerText = "Analyzing image...";
+result.innerText = "";
+loading.style.display = "block";
 
 try{
 
 let formData = new FormData();
 formData.append("image", fileInput.files[0]);
 
-let response = await fetch("https://ai-detector-api-q80d.onrender.com/detect",{
+let response = await fetch(
+"https://ai-detector-api-q80d.onrender.com/detect",
+{
 method:"POST",
 body:formData
 });
 
 let data = await response.json();
 
+loading.style.display = "none";
+
 result.innerText =
 data.result + " (" + data.confidence + "% confidence)";
 
+bar.style.display = "block";
+fill.style.width = data.confidence + "%";
+
 }catch(error){
 
-result.innerText = "Backend server not running";
+loading.style.display = "none";
+result.innerText = "Error connecting to server";
 
 }
 

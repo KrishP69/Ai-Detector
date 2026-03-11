@@ -1,8 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-<meta charset="UTF-8">
 <title>AI Image Detector</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -19,14 +17,23 @@
 <input type="file" id="imageUpload" accept="image/*">
 </div>
 
-<img id="preview" style="display:none; max-width:100%; border-radius:10px;">
+<img id="preview">
 
 <div class="buttons">
 <button onclick="detectAI()">Detect AI</button>
 <button onclick="removeImage()">Remove Image</button>
 </div>
 
+<div id="loading" style="display:none;">
+<div class="spinner"></div>
+<p>Analyzing image with AI...</p>
+</div>
+
 <div id="result"></div>
+
+<div id="confidenceBar" style="display:none;">
+<div id="confidenceFill"></div>
+</div>
 
 </div>
 
