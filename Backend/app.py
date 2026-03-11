@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import torch
-import clip
+from transformers import pipeline
 from PIL import Image
 import os
 
@@ -11,14 +10,11 @@ CORS(app)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-model, preprocess = clip.load("ViT-B/32", device=device)
-
-text = clip.tokenize([
-    "a real photograph",
-    "an AI generated image"
-]).to(device)
+# Load pretrained AI detector
+detector = pipeline(
+    "image-classification",
+    model="umm-maybe/AI-image-detector"
+)
 
 
 @app.route("/detect", methods=["POST"])
@@ -32,31 +28,34 @@ def detect():
     path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(path)
 
-    image = preprocess(Image.open(path)).unsqueeze(0).to(device)
+    image = Image.open(path)
 
-    with torch.no_grad():
+    results = detector(image)
 
-        image_features = model.encode_image(image)
-        text_features = model.encode_text(text)
+    ai_score = 0
+    real_score = 0
 
-        logits = (image_features @ text_features.T).softmax(dim=-1)
+    for r in results:
+        label = r["label"].lower()
 
-        real_prob = float(logits[0][0]) * 100
-        ai_prob = float(logits[0][1]) * 100
+        if "ai" in label or "generated" in label:
+            ai_score = r["score"] * 100
+        else:
+            real_score = r["score"] * 100
 
-    if ai_prob > real_prob:
-        label = "AI Generated"
-        confidence = ai_prob
+    if ai_score > real_score:
+        result = "AI Generated"
+        confidence = ai_score
     else:
-        label = "Likely Real"
-        confidence = real_prob
+        result = "Likely Real"
+        confidence = real_score
 
     return jsonify({
-        "result": label,
+        "result": result,
         "confidence": round(confidence,2),
-        "pattern": round(ai_prob * 0.6,2),
-        "lighting": round(ai_prob * 0.3,2),
-        "texture": round(ai_prob * 0.2,2)
+        "pattern": round(ai_score * 0.6,2),
+        "lighting": round(ai_score * 0.3,2),
+        "texture": round(ai_score * 0.2,2)
     })
 
 
