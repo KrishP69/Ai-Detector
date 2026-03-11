@@ -7,10 +7,12 @@
 
 <body>
 
-<div class="container">
+<div class="main">
 
 <h1>AI Image Detector</h1>
-<p>Upload or drag an image to check if it is AI generated</p>
+<p class="subtitle">Detect whether an image is AI generated</p>
+
+<div class="card">
 
 <div id="dropArea">
 <p>Drag & Drop Image Here</p>
@@ -21,18 +23,20 @@
 
 <div class="buttons">
 <button onclick="detectAI()">Detect AI</button>
-<button onclick="removeImage()">Remove Image</button>
+<button class="secondary" onclick="removeImage()">Remove</button>
 </div>
 
 <div id="loading" style="display:none;">
 <div class="spinner"></div>
-<p>Analyzing image with AI...</p>
+<p>Analyzing image...</p>
 </div>
 
 <div id="result"></div>
 
 <div id="confidenceBar" style="display:none;">
 <div id="confidenceFill"></div>
+</div>
+
 </div>
 
 </div>
