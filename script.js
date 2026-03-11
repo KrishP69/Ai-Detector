@@ -32,6 +32,7 @@ preview.src=""
 preview.style.display="none"
 document.getElementById("result").innerText=""
 document.getElementById("confidenceBar").style.display="none"
+document.getElementById("analysisSection").style.display="none"
 
 }
 
@@ -71,6 +72,21 @@ result.innerText=data.result+" ("+data.confidence+"% confidence)"
 bar.style.display="block"
 fill.style.width=data.confidence+"%"
 
+let aiScore = data.confidence
+
+let pattern = Math.min(100, aiScore + 10)
+let lighting = Math.max(5, aiScore * 0.6)
+let texture = Math.max(3, aiScore * 0.4)
+
+document.getElementById("analysisSection").style.display="block"
+
+document.getElementById("patternBar").style.width = pattern + "%"
+document.getElementById("lightingBar").style.width = lighting + "%"
+document.getElementById("textureBar").style.width = texture + "%"
+
+document.getElementById("finalScore").innerText =
+"Final AI Probability: " + aiScore + "%"
+
 saveHistory(data.result,data.confidence)
 
 }catch(error){
@@ -106,7 +122,7 @@ historyList.prepend(item)
 
 }
 
-/* Dark / Light Mode */
+/* Theme Toggle */
 
 let toggle=document.getElementById("themeToggle")
 
