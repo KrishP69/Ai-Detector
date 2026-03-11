@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import cv2
-import numpy as np
+import torch
+import clip
+from PIL import Image
 import os
 
 app = Flask(__name__)
@@ -10,128 +11,54 @@ CORS(app)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# --------------------------
-# EDGE PATTERN ANALYSIS
-# --------------------------
+model, preprocess = clip.load("ViT-B/32", device=device)
 
-def edge_score(img):
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    edges = cv2.Canny(gray,100,200)
-
-    density = np.sum(edges) / (img.shape[0] * img.shape[1])
-
-    return density * 100
+text = clip.tokenize([
+    "a real photograph",
+    "an AI generated image"
+]).to(device)
 
 
-# --------------------------
-# TEXTURE VARIATION
-# --------------------------
-
-def texture_score(img):
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    lap = cv2.Laplacian(gray,cv2.CV_64F)
-
-    variance = lap.var()
-
-    return min(100,variance / 30)
-
-
-# --------------------------
-# LIGHTING CONSISTENCY
-# --------------------------
-
-def lighting_score(img):
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    mean = np.mean(gray)
-    std = np.std(gray)
-
-    ratio = std/(mean+1)
-
-    return min(100,ratio * 50)
-
-
-# --------------------------
-# CAMERA NOISE DETECTION
-# --------------------------
-
-def noise_score(img):
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    blur = cv2.GaussianBlur(gray,(5,5),0)
-
-    noise = cv2.absdiff(gray,blur)
-
-    level = np.mean(noise)
-
-    return min(100,level * 5)
-
-
-# --------------------------
-# DETECTION
-# --------------------------
-
-@app.route("/detect",methods=["POST"])
+@app.route("/detect", methods=["POST"])
 def detect():
 
     if "image" not in request.files:
-        return jsonify({"error":"No image uploaded"})
+        return jsonify({"error": "No image uploaded"})
 
     file = request.files["image"]
 
-    path = os.path.join(UPLOAD_FOLDER,file.filename)
+    path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(path)
 
-    img = cv2.imread(path)
+    image = preprocess(Image.open(path)).unsqueeze(0).to(device)
 
-    edge = edge_score(img)
-    texture = texture_score(img)
-    lighting = lighting_score(img)
-    noise = noise_score(img)
+    with torch.no_grad():
 
-    # normalized anomaly scores
+        image_features = model.encode_image(image)
+        text_features = model.encode_text(text)
 
-    anomaly_count = 0
+        logits = (image_features @ text_features.T).softmax(dim=-1)
 
-    if edge > 40:
-        anomaly_count += 1
+        real_prob = float(logits[0][0]) * 100
+        ai_prob = float(logits[0][1]) * 100
 
-    if texture > 40:
-        anomaly_count += 1
-
-    if lighting > 40:
-        anomaly_count += 1
-
-    if noise < 15:  # real photos contain natural noise
-        anomaly_count += 1
-
-    ai_probability = (edge*0.2 + texture*0.3 + lighting*0.2 + (100-noise)*0.3)
-
-    ai_probability = round(min(ai_probability,100),2)
-
-    # require multiple anomalies
-
-    if anomaly_count >= 3 and ai_probability > 70:
+    if ai_prob > real_prob:
         label = "AI Generated"
+        confidence = ai_prob
     else:
         label = "Likely Real"
+        confidence = real_prob
 
     return jsonify({
-        "result":label,
-        "confidence":ai_probability,
-        "pattern":round(edge,2),
-        "lighting":round(lighting,2),
-        "texture":round(texture,2),
-        "noise":round(noise,2)
+        "result": label,
+        "confidence": round(confidence,2),
+        "pattern": round(ai_prob * 0.6,2),
+        "lighting": round(ai_prob * 0.3,2),
+        "texture": round(ai_prob * 0.2,2)
     })
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=5000)
+    app.run(host="0.0.0.0", port=5000)
