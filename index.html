@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>AI Image Detector</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>AI Image Detector</h1>
+<p>Upload or drag an image to check if it is AI generated</p>
+
+<div id="dropArea">
+<p>Drag & Drop Image Here</p>
+<input type="file" id="imageUpload" accept="image/*">
+</div>
+
+<img id="preview" style="display:none; max-width:100%; border-radius:10px;">
+
+<div class="buttons">
+<button onclick="detectAI()">Detect AI</button>
+<button onclick="removeImage()">Remove Image</button>
+</div>
+
+<div id="result"></div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
