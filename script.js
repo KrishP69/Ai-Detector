@@ -54,7 +54,7 @@ try{
 let formData = new FormData();
 formData.append("image", fileInput.files[0]);
 
-let response = await fetch("http://127.0.0.1:5000/detect",{
+let response = await fetch("https://ai-detector-api-q80d.onrender.com/detect",{
 method:"POST",
 body:formData
 });
