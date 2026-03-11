@@ -86,16 +86,38 @@ function saveHistory(result,confidence){
 
 let historyList=document.getElementById("historyList")
 
-let li=document.createElement("li")
+let imageURL=preview.src
 
-li.innerText=result+" ("+confidence+"%)"
+let time=new Date().toLocaleTimeString()
 
-historyList.prepend(li)
+let item=document.createElement("div")
+
+item.className="history-item"
+
+item.innerHTML=`
+<img src="${imageURL}">
+<div class="history-info">
+<div>${result} (${confidence}%)</div>
+<small>${time}</small>
+</div>
+`
+
+historyList.prepend(item)
 
 }
 
-document.getElementById("themeToggle").onclick=function(){
+/* Dark / Light Mode */
+
+let toggle=document.getElementById("themeToggle")
+
+toggle.onclick=function(){
 
 document.body.classList.toggle("light")
+
+if(document.body.classList.contains("light")){
+toggle.innerText="🌙"
+}else{
+toggle.innerText="☀️"
+}
 
 }

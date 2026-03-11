@@ -4,6 +4,7 @@ margin:0;
 background:#0f172a;
 color:white;
 text-align:center;
+transition:0.3s;
 }
 
 nav{
@@ -18,7 +19,7 @@ background:#111827;
 margin-top:40px;
 }
 
-.detector{
+.container{
 display:flex;
 justify-content:center;
 margin-top:30px;
@@ -105,21 +106,52 @@ transition:width 0.5s;
 margin-top:60px;
 }
 
-#historyList{
-list-style:none;
-padding:0;
+.history-item{
+display:flex;
+align-items:center;
+gap:15px;
+background:#1f2937;
+padding:10px;
+border-radius:8px;
+margin:10px auto;
+width:350px;
 }
 
-#historyList li{
-background:#1f2937;
-margin:10px auto;
-padding:10px;
-width:300px;
-border-radius:8px;
+.history-item img{
+width:50px;
+height:50px;
+border-radius:6px;
+object-fit:cover;
+}
+
+.history-info{
+text-align:left;
+font-size:14px;
 }
 
 footer{
 margin-top:60px;
 padding:20px;
 background:#111827;
+}
+
+/* Light Mode */
+
+.light{
+background:#f3f4f6;
+color:#111;
+}
+
+.light nav{
+background:white;
+color:black;
+}
+
+.light .card{
+background:white;
+color:black;
+}
+
+.light .history-item{
+background:#e5e7eb;
 }
