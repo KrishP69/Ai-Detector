@@ -1,10 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import torch
-import torchvision.transforms as transforms
-from PIL import Image
-import numpy as np
 import cv2
+import numpy as np
 import os
 
 app = Flask(__name__)
@@ -13,88 +10,75 @@ CORS(app)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ---------------------------
-# Load pretrained model
-# ---------------------------
 
-model = torch.hub.load(
-    "pytorch/vision",
-    "resnet18",
-    pretrained=True
-)
-
-model.eval()
-
-transform = transforms.Compose([
-    transforms.Resize((224,224)),
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485,0.456,0.406],
-        std=[0.229,0.224,0.225]
-    )
-])
-
-# ---------------------------
-# Forensic heuristics
-# ---------------------------
+# -----------------------
+# EDGE ANALYSIS
+# -----------------------
 
 def edge_score(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    edges = cv2.Canny(gray,80,200)
+    edges = cv2.Canny(gray, 100, 200)
 
-    density = np.sum(edges)/(img.shape[0]*img.shape[1])
+    density = np.sum(edges) / (img.shape[0] * img.shape[1])
 
-    return min(100,density*80)
+    return min(100, density * 80)
 
+
+# -----------------------
+# TEXTURE ANALYSIS
+# -----------------------
 
 def texture_score(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    lap = cv2.Laplacian(gray,cv2.CV_64F)
+    lap = cv2.Laplacian(gray, cv2.CV_64F)
 
-    return min(100,lap.var()/20)
+    variance = lap.var()
 
+    return min(100, variance / 25)
+
+
+# -----------------------
+# LIGHTING ANALYSIS
+# -----------------------
+
+def lighting_score(img):
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    mean = np.mean(gray)
+    std = np.std(gray)
+
+    ratio = std / (mean + 1)
+
+    return min(100, ratio * 60)
+
+
+# -----------------------
+# SENSOR NOISE ANALYSIS
+# -----------------------
 
 def noise_score(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    blur = cv2.GaussianBlur(gray,(5,5),0)
+    blur = cv2.GaussianBlur(gray, (5,5), 0)
 
-    noise = cv2.absdiff(gray,blur)
+    noise = cv2.absdiff(gray, blur)
 
-    return min(100,np.mean(noise)*3)
+    level = np.mean(noise)
 
-
-# ---------------------------
-# Deep model prediction
-# ---------------------------
-
-def ai_probability(image):
-
-    tensor = transform(image).unsqueeze(0)
-
-    with torch.no_grad():
-        output = model(tensor)
-
-    probs = torch.nn.functional.softmax(output,dim=1)
-
-    # entropy approximation
-    entropy = -torch.sum(probs*torch.log(probs))
-
-    ai_score = float(entropy*15)
-
-    return min(100,ai_score)
+    return min(100, level * 4)
 
 
-# ---------------------------
-# Detection endpoint
-# ---------------------------
+# -----------------------
+# DETECT ENDPOINT
+# -----------------------
 
-@app.route("/detect",methods=["POST"])
+@app.route("/detect", methods=["POST"])
 def detect():
 
     if "image" not in request.files:
@@ -102,41 +86,42 @@ def detect():
 
     file = request.files["image"]
 
-    path = os.path.join(UPLOAD_FOLDER,file.filename)
+    path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(path)
 
-    pil_img = Image.open(path).convert("RGB")
-    cv_img = cv2.imread(path)
+    img = cv2.imread(path)
 
-    deep_score = ai_probability(pil_img)
+    edge = edge_score(img)
+    texture = texture_score(img)
+    lighting = lighting_score(img)
+    noise = noise_score(img)
 
-    e = edge_score(cv_img)
-    t = texture_score(cv_img)
-    n = noise_score(cv_img)
+    # Balanced scoring
 
-    # combined score
     ai_score = (
-        deep_score*0.6 +
-        e*0.15 +
-        t*0.15 +
-        n*0.10
+        edge * 0.15 +
+        texture * 0.20 +
+        lighting * 0.15 +
+        noise * 0.50
     )
 
     ai_score = round(min(ai_score,100),2)
 
-    if ai_score > 75:
+    # Higher threshold reduces false positives
+
+    if ai_score > 80:
         label = "AI Generated"
     else:
         label = "Likely Real"
 
     return jsonify({
-        "result":label,
-        "confidence":ai_score,
-        "pattern":round(e,2),
-        "texture":round(t,2),
-        "noise":round(n,2)
+        "result": label,
+        "confidence": ai_score,
+        "pattern": round(edge,2),
+        "lighting": round(lighting,2),
+        "texture": round(texture,2)
     })
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=5000)
+    app.run(host="0.0.0.0", port=5000)
