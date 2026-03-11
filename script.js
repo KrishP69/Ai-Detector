@@ -115,9 +115,9 @@ toggle.onclick=function(){
 document.body.classList.toggle("light")
 
 if(document.body.classList.contains("light")){
-toggle.innerText="🌙"
-}else{
 toggle.innerText="☀️"
+}else{
+toggle.innerText="🌙"
 }
 
 }

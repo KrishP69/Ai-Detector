@@ -135,23 +135,53 @@ padding:20px;
 background:#111827;
 }
 
-/* Light Mode */
+/* LIGHT MODE */
 
 .light{
-background:#f3f4f6;
+background:#f5f7fb;
 color:#111;
 }
 
 .light nav{
 background:white;
-color:black;
+color:#111;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.light .hero{
+color:#111;
 }
 
 .light .card{
 background:white;
-color:black;
+color:#111;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+.light #dropArea{
+border:2px dashed #3b82f6;
+background:#f9fafb;
+}
+
+.light button{
+color:white;
 }
 
 .light .history-item{
+background:#ffffff;
+color:#111;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+.light footer{
 background:#e5e7eb;
+color:#111;
+}
+
+.light #confidenceBar{
+background:#e5e7eb;
+}
+
+.light #confidenceFill{
+background:#22c55e;
 }
