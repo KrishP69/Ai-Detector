@@ -29,7 +29,7 @@ margin-top:30px;
 background:#1f2937;
 padding:30px;
 border-radius:12px;
-width:400px;
+width:520px;
 box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
@@ -40,11 +40,20 @@ border-radius:10px;
 cursor:pointer;
 }
 
-#preview{
+/* Image comparison */
+
+.analysis-images{
+display:flex;
+gap:20px;
+justify-content:center;
 margin-top:20px;
-max-width:100%;
+flex-wrap:wrap;
+}
+
+.analysis-images img{
+max-width:220px;
 border-radius:10px;
-display:none;
+box-shadow:0 5px 15px rgba(0,0,0,0.4);
 }
 
 .buttons{
@@ -102,7 +111,7 @@ background:#22c55e;
 transition:width 0.5s;
 }
 
-/* Analysis */
+/* Suspicion Meter */
 
 .analysis-row{
 margin-top:10px;

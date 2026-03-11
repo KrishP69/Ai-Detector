@@ -1,5 +1,6 @@
 let fileInput = document.getElementById("imageUpload")
 let preview = document.getElementById("preview")
+let forensic = document.getElementById("forensicImage")
 let dropArea = document.getElementById("dropArea")
 
 fileInput.addEventListener("change", showImage)
@@ -23,6 +24,8 @@ if(!file) return
 preview.src = URL.createObjectURL(file)
 preview.style.display = "block"
 
+forensic.style.display = "none"
+
 }
 
 function removeImage(){
@@ -30,6 +33,9 @@ function removeImage(){
 fileInput.value=""
 preview.src=""
 preview.style.display="none"
+
+forensic.src=""
+forensic.style.display="none"
 
 document.getElementById("result").innerText=""
 document.getElementById("confidenceBar").style.display="none"
@@ -72,6 +78,15 @@ result.innerText=data.result+" ("+data.confidence+"% confidence)"
 
 bar.style.display="block"
 fill.style.width=data.confidence+"%"
+
+/* Show forensic image */
+
+forensic.src =
+"https://ai-detector-api-q80d.onrender.com/forensic?"+Date.now()
+
+forensic.style.display = "block"
+
+/* Suspicion meter */
 
 let aiScore=data.confidence
 
@@ -123,7 +138,7 @@ historyList.prepend(item)
 
 }
 
-/* Theme Toggle */
+/* Theme toggle */
 
 let toggle=document.getElementById("themeToggle")
 

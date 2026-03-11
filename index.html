@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <title>AI Image Detector</title>
@@ -13,10 +14,12 @@
 <button id="themeToggle">🌙</button>
 </nav>
 
-<div class="hero">
+<section class="hero">
+
 <h1>Detect AI Generated Images</h1>
 <p>Upload an image and let our AI analyze it instantly.</p>
-</div>
+
+</section>
 
 <div class="container">
 
@@ -27,59 +30,105 @@
 <input type="file" id="imageUpload" accept="image/*">
 </div>
 
-<img id="preview">
+
+<div class="analysis-images">
+
+<img id="preview" style="display:none">
+
+<img id="forensicImage" style="display:none">
+
+</div>
+
 
 <div class="buttons">
+
 <button onclick="detectAI()">Detect AI</button>
+
 <button class="secondary" onclick="removeImage()">Remove</button>
+
 </div>
 
+
 <div id="loading">
+
 <div class="spinner"></div>
+
 <p>Analyzing image...</p>
+
 </div>
+
 
 <div id="result"></div>
 
+
 <div id="confidenceBar">
+
 <div id="confidenceFill"></div>
+
 </div>
 
+
 <div id="analysisSection">
+
 <h3>AI Suspicion Meter</h3>
 
 <div class="analysis-row">
+
 <span>Realistic AI Patterns</span>
-<div class="analysis-bar"><div id="patternBar"></div></div>
+
+<div class="analysis-bar">
+<div id="patternBar"></div>
+</div>
+
 </div>
 
 <div class="analysis-row">
+
 <span>Lighting Anomaly</span>
-<div class="analysis-bar"><div id="lightingBar"></div></div>
+
+<div class="analysis-bar">
+<div id="lightingBar"></div>
+</div>
+
 </div>
 
 <div class="analysis-row">
+
 <span>Texture Anomaly</span>
-<div class="analysis-bar"><div id="textureBar"></div></div>
+
+<div class="analysis-bar">
+<div id="textureBar"></div>
+</div>
+
 </div>
 
 <p id="finalScore"></p>
-</div>
 
 </div>
 
 </div>
+
+</div>
+
 
 <section class="history">
+
 <h2>Scan History</h2>
+
 <div id="historyList"></div>
+
 </section>
 
+
 <footer>
+
 <p>Built by Krish Patil • AI Detector</p>
+
 </footer>
+
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
