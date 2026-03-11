@@ -1,140 +1,131 @@
-let fileInput = document.getElementById("imageUpload")
-let preview = document.getElementById("preview")
-let dropArea = document.getElementById("dropArea")
+let fileInput = document.getElementById("imageUpload");
+let preview = document.getElementById("preview");
+let dropArea = document.getElementById("dropArea");
+let result = document.getElementById("result");
 
-fileInput.addEventListener("change", showImage)
+fileInput.addEventListener("change", showImage);
 
-dropArea.addEventListener("dragover", e=>{
-e.preventDefault()
-})
+dropArea.addEventListener("dragover", function(e){
+    e.preventDefault();
+});
 
-dropArea.addEventListener("drop", e=>{
-e.preventDefault()
-fileInput.files = e.dataTransfer.files
-showImage()
-})
+dropArea.addEventListener("drop", function(e){
+    e.preventDefault();
+
+    let file = e.dataTransfer.files[0];
+    fileInput.files = e.dataTransfer.files;
+
+    showImage();
+});
+
 
 function showImage(){
 
-let file = fileInput.files[0]
+    let file = fileInput.files[0];
 
-if(!file) return
+    if(!file) return;
 
-preview.src = URL.createObjectURL(file)
-preview.style.display = "block"
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
 
 }
+
 
 function removeImage(){
 
-fileInput.value=""
-preview.src=""
-preview.style.display="none"
+    fileInput.value = "";
+    preview.src = "";
+    preview.style.display = "none";
 
-document.getElementById("result").innerText=""
-document.getElementById("confidenceBar").style.display="none"
-document.getElementById("analysisSection").style.display="none"
+    result.innerText = "";
 
+    document.getElementById("patternBar").style.width = "0%";
+    document.getElementById("lightingBar").style.width = "0%";
+    document.getElementById("textureBar").style.width = "0%";
+
+    document.getElementById("finalProbability").innerText = "";
 }
+
 
 async function detectAI(){
 
-if(fileInput.files.length===0){
-alert("Upload image first")
-return
-}
+    if(fileInput.files.length === 0){
+        alert("Upload an image first");
+        return;
+    }
 
-let result=document.getElementById("result")
-let loading=document.getElementById("loading")
-let bar=document.getElementById("confidenceBar")
-let fill=document.getElementById("confidenceFill")
+    result.innerText = "Analyzing image...";
 
-loading.style.display="block"
-result.innerText=""
+    try{
 
-try{
+        let formData = new FormData();
+        formData.append("image", fileInput.files[0]);
 
-let formData=new FormData()
-formData.append("image",fileInput.files[0])
+        let response = await fetch("https://ai-detector-api-q80d.onrender.com/detect",{
+            method:"POST",
+            body:formData
+        });
 
-let response=await fetch(
-"https://ai-detector-api-q80d.onrender.com/detect",
-{
-method:"POST",
-body:formData
-})
+        let data = await response.json();
 
-let data=await response.json()
+        // main result
+        result.innerText =
+        data.result + " (" + data.confidence + "% confidence)";
 
-loading.style.display="none"
 
-result.innerText=data.result+" ("+data.confidence+"% confidence)"
+        // progress bars
+        document.getElementById("patternBar").style.width =
+        data.pattern + "%";
 
-bar.style.display="block"
-fill.style.width=data.confidence+"%"
+        document.getElementById("lightingBar").style.width =
+        data.lighting + "%";
 
-let aiScore=data.confidence
+        document.getElementById("textureBar").style.width =
+        data.texture + "%";
 
-let pattern=Math.min(100, aiScore+10)
-let lighting=Math.max(5, aiScore*0.6)
-let texture=Math.max(3, aiScore*0.4)
 
-document.getElementById("analysisSection").style.display="block"
+        // final probability (from backend only)
+        document.getElementById("finalProbability").innerText =
+        "Final AI Probability: " + data.confidence + "%";
 
-document.getElementById("patternBar").style.width = pattern + "%"
-document.getElementById("lightingBar").style.width = lighting + "%"
-document.getElementById("textureBar").style.width = texture + "%"
 
-document.getElementById("finalScore").innerText =
-"Final AI Probability: " + aiScore + "%"
+        // scan history
+        addToHistory(data.result, data.confidence);
 
-saveHistory(data.result,data.confidence)
 
-}catch(error){
+    }catch(error){
 
-loading.style.display="none"
-result.innerText="Server error"
+        result.innerText = "Backend server not running";
+
+    }
 
 }
 
-}
 
-function saveHistory(result,confidence){
+function addToHistory(label, confidence){
 
-let historyList=document.getElementById("historyList")
+    let history = document.getElementById("history");
 
-let imageURL=preview.src
+    let item = document.createElement("div");
+    item.className = "historyItem";
 
-let time=new Date().toLocaleTimeString()
+    let img = document.createElement("img");
+    img.src = preview.src;
 
-let item=document.createElement("div")
+    let text = document.createElement("div");
+    text.innerText = label + " (" + confidence + "%)";
 
-item.className="history-item"
+    let time = document.createElement("div");
+    time.className = "time";
+    time.innerText = new Date().toLocaleTimeString();
 
-item.innerHTML=`
-<img src="${imageURL}">
-<div class="history-info">
-<div>${result} (${confidence}%)</div>
-<small>${time}</small>
-</div>
-`
+    item.appendChild(img);
 
-historyList.prepend(item)
+    let container = document.createElement("div");
+    container.appendChild(text);
+    container.appendChild(time);
 
-}
+    item.appendChild(container);
 
-/* Theme toggle */
-
-let toggle=document.getElementById("themeToggle")
-
-toggle.onclick=function(){
-
-document.body.classList.toggle("light")
-
-if(document.body.classList.contains("light")){
-toggle.innerText="☀️"
-}else{
-toggle.innerText="🌙"
-}
-
+    history.prepend(item);
 }
