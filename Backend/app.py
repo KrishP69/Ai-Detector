@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
 from detector import detect_ai
@@ -34,6 +34,11 @@ def detect():
     os.remove(path)
 
     return jsonify(result)
+
+
+@app.route("/forensic")
+def forensic():
+    return send_file("uploads/forensic.jpg", mimetype="image/jpeg")
 
 
 if __name__ == "__main__":

@@ -103,6 +103,27 @@ def noise_score(image_path):
         return 30
 
 
+# ---------------- Forensic Image Generation ---------------- #
+
+def generate_forensic_image(image_path):
+
+    img = cv2.imread(image_path)
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    edges = cv2.Canny(gray, 100, 200)
+
+    heatmap = cv2.applyColorMap(edges, cv2.COLORMAP_JET)
+
+    forensic = cv2.addWeighted(img, 0.7, heatmap, 0.3, 0)
+
+    output_path = "uploads/forensic.jpg"
+
+    cv2.imwrite(output_path, forensic)
+
+    return output_path
+
+
 # ---------------- Final Score ---------------- #
 
 def final_score(api, meta, texture, noise):
@@ -128,13 +149,16 @@ def detect_ai(image_path):
 
     final = final_score(api, meta, texture, noise)
 
+    forensic_path = generate_forensic_image(image_path)
+
     result = "AI Generated" if final > 50 else "Likely Real"
 
     return {
         "result": result,
         "confidence": final,
-        "api_score": round(api,2),
+        "api_score": round(api, 2),
         "metadata_score": meta,
         "texture_score": texture,
-        "noise_score": noise
+        "noise_score": noise,
+        "forensic_image": "/forensic"
     }
