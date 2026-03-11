@@ -3,5 +3,5 @@ flask-cors
 opencv-python
 numpy
 pillow
-python-dotenv
 gunicorn
+python-dotenv
