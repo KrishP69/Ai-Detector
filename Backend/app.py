@@ -1,185 +1,142 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import cv2
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
 import numpy as np
+import cv2
 import os
 
 app = Flask(__name__)
 CORS(app)
 
 UPLOAD_FOLDER = "uploads"
-FORENSIC_FOLDER = "forensic"
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(FORENSIC_FOLDER, exist_ok=True)
-
 
 # ---------------------------
-# EDGE ANALYSIS
+# Load pretrained model
 # ---------------------------
 
-def analyze_edges(img):
+model = torch.hub.load(
+    "pytorch/vision",
+    "resnet18",
+    pretrained=True
+)
+
+model.eval()
+
+transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485,0.456,0.406],
+        std=[0.229,0.224,0.225]
+    )
+])
+
+# ---------------------------
+# Forensic heuristics
+# ---------------------------
+
+def edge_score(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    edges = cv2.Canny(gray, 100, 200)
+    edges = cv2.Canny(gray,80,200)
 
-    edge_density = np.sum(edges) / (img.shape[0] * img.shape[1])
+    density = np.sum(edges)/(img.shape[0]*img.shape[1])
 
-    score = min(100, edge_density * 120)
-
-    return score
+    return min(100,density*80)
 
 
-# ---------------------------
-# TEXTURE ANALYSIS
-# ---------------------------
-
-def analyze_texture(img):
+def texture_score(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    lap = cv2.Laplacian(gray, cv2.CV_64F)
+    lap = cv2.Laplacian(gray,cv2.CV_64F)
 
-    variance = lap.var()
-
-    score = min(100, variance / 18)
-
-    return score
+    return min(100,lap.var()/20)
 
 
-# ---------------------------
-# LIGHTING ANALYSIS
-# ---------------------------
-
-def analyze_lighting(img):
+def noise_score(img):
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    mean = np.mean(gray)
-    std = np.std(gray)
+    blur = cv2.GaussianBlur(gray,(5,5),0)
 
-    ratio = std / (mean + 1)
+    noise = cv2.absdiff(gray,blur)
 
-    score = min(100, ratio * 70)
-
-    return score
+    return min(100,np.mean(noise)*3)
 
 
 # ---------------------------
-# SENSOR NOISE ANALYSIS
+# Deep model prediction
 # ---------------------------
 
-def analyze_noise(img):
+def ai_probability(image):
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    tensor = transform(image).unsqueeze(0)
 
-    blur = cv2.GaussianBlur(gray, (5,5), 0)
+    with torch.no_grad():
+        output = model(tensor)
 
-    noise = cv2.absdiff(gray, blur)
+    probs = torch.nn.functional.softmax(output,dim=1)
 
-    noise_level = np.mean(noise)
+    # entropy approximation
+    entropy = -torch.sum(probs*torch.log(probs))
 
-    score = min(100, noise_level * 3)
+    ai_score = float(entropy*15)
 
-    return score
-
-
-# ---------------------------
-# FORENSIC VISUALIZATION
-# ---------------------------
-
-def generate_forensic(img):
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    edges = cv2.Canny(gray, 80, 200)
-
-    heat = cv2.applyColorMap(edges, cv2.COLORMAP_JET)
-
-    forensic = cv2.addWeighted(img, 0.75, heat, 0.25, 0)
-
-    return forensic
+    return min(100,ai_score)
 
 
 # ---------------------------
-# DETECTION ENDPOINT
+# Detection endpoint
 # ---------------------------
 
-@app.route("/detect", methods=["POST"])
+@app.route("/detect",methods=["POST"])
 def detect():
 
     if "image" not in request.files:
-        return jsonify({"error": "No image uploaded"})
+        return jsonify({"error":"No image uploaded"})
 
     file = request.files["image"]
 
-    path = os.path.join(UPLOAD_FOLDER, file.filename)
+    path = os.path.join(UPLOAD_FOLDER,file.filename)
     file.save(path)
 
-    img = cv2.imread(path)
+    pil_img = Image.open(path).convert("RGB")
+    cv_img = cv2.imread(path)
 
-    # Run analysis
+    deep_score = ai_probability(pil_img)
 
-    edge_score = analyze_edges(img)
-    texture_score = analyze_texture(img)
-    lighting_score = analyze_lighting(img)
-    noise_score = analyze_noise(img)
+    e = edge_score(cv_img)
+    t = texture_score(cv_img)
+    n = noise_score(cv_img)
 
-    # Balanced scoring
-
+    # combined score
     ai_score = (
-        edge_score * 0.25 +
-        texture_score * 0.25 +
-        lighting_score * 0.25 +
-        noise_score * 0.25
+        deep_score*0.6 +
+        e*0.15 +
+        t*0.15 +
+        n*0.10
     )
 
-    ai_score = ai_score * 1.15
+    ai_score = round(min(ai_score,100),2)
 
-    ai_score = round(min(ai_score, 100), 2)
-
-    # Higher threshold reduces false positives
-
-    if ai_score > 72:
+    if ai_score > 75:
         label = "AI Generated"
     else:
         label = "Likely Real"
 
-    # Generate forensic map
-
-    forensic = generate_forensic(img)
-
-    forensic_path = os.path.join(FORENSIC_FOLDER, "forensic.jpg")
-
-    cv2.imwrite(forensic_path, forensic)
-
     return jsonify({
-
-        "result": label,
-        "confidence": ai_score,
-
-        "pattern": round(edge_score,2),
-        "lighting": round(lighting_score,2),
-        "texture": round(texture_score,2),
-        "noise": round(noise_score,2)
-
+        "result":label,
+        "confidence":ai_score,
+        "pattern":round(e,2),
+        "texture":round(t,2),
+        "noise":round(n,2)
     })
 
 
-# ---------------------------
-# FORENSIC IMAGE ENDPOINT
-# ---------------------------
-
-@app.route("/forensic")
-def forensic():
-
-    return send_file("forensic/forensic.jpg", mimetype="image/jpeg")
-
-
-# ---------------------------
-# RUN SERVER
-# ---------------------------
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0",port=5000)
